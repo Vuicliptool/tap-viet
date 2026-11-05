@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bé Tập Viết Chữ Cái</title>
+    <style>
+        * { box-sizing: border-box; touch-action: none; }
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center;
+        }
+        #menu-screen { background: #ffffff; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 450px; }
+        h2 { color: #0288d1; margin: 5px 0 15px 0; font-size: 1.6rem; }
+        .grid-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .item-btn {
+            background: #e0f2f1; border: 2px solid #26a69a; border-radius: 15px; padding: 15px; font-size: 1.4rem; font-weight: bold; color: #00796b; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .item-btn:active { transform: scale(0.95); }
+        #writing-screen { display: none; background: #ffffff; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 420px; flex-direction: column; align-items: center; position: relative; }
+        .level-title { font-size: 0.95rem; color: #e65100; font-weight: bold; margin-bottom: 8px; }
+        .canvas-container { position: relative; width: 320px; height: 320px; border: 3px solid #0288d1; border-radius: 12px; background: #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        canvas { position: absolute; top: 0; left: 0; width: 320px; height: 320px; border-radius: 10px; }
+        .controls { display: flex; gap: 10px; margin-top: 15px; width: 100%; justify-content: center; }
+        .btn { border: none; padding: 10px 16px; font-size: 0.95rem; font-weight: bold; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .btn-clear { background-color: #ff7675; color: white; }
+        .btn-back-menu { background-color: #74b9ff; color: white; }
+        .main-back { background-color: #ff7675; color: white; text-decoration: none; display: inline-block; margin-top: 15px; padding: 10px 20px; border-radius: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <h2>🔤 Bé Tập Viết Chữ Cái</h2>
+        <p style="font-size: 1rem; color: #555;">Chọn chữ cái bé muốn luyện tập nhé!</p>
+        <div class="grid-items" id="chu-cai-grid"></div>
+        <br>
+        <a href="index.html" class="main-back">⬅ Về Menu Chính</a>
+    </div>
+
+    <div id="writing-screen">
+        <h2 id="writing-title">✍️ Tập Viết</h2>
+        <div class="level-title">Hướng dẫn: Đặt bút từ chấm đỏ và kéo theo nét mờ</div>
+        <div class="canvas-container">
+            <canvas id="bgCanvas" width="320" height="320"></canvas>
+            <canvas id="drawCanvas" width="320" height="320"></canvas>
+        </div>
+        <div class="controls">
+            <button class="btn btn-clear" onclick="clearCanvas()">🔄 Viết Lại</button>
+            <button class="btn btn-back-menu" onclick="backToMenu()">📂 Chọn Chữ Khác</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // Định nghĩa các nét chuẩn cho chữ cái (mỗi chữ gồm các đoạn thẳng/cong mô phỏng)
+        const danhSachChu = [
+            {
+                name: "Chữ a",
+                strokes: [
+                    { type: "arc", x: 160, y: 160, r: 40, startAngle: 0, endAngle: Math.PI * 2 }, // Vòng tròn chữ a
+                    { type: "line", startX: 200, startY: 120, endX: 200, endY: 200 } // Nét móc
+                ],
+                startDot: { x: 200, y: 120 }
+            },
+            {
+                name: "Chữ b",
+                strokes: [
+                    { type: "line", startX: 140, startY: 80, endX: 140, endY: 220 }, // Nét sổ dọc
+                    { type: "arc", x: 165, y: 180, r: 30, startAngle: -Math.PI/2, endAngle: Math.PI/2 } // Nét cong bụng
+                ],
+                startDot: { x: 140, y: 80 }
+            },
+            {
+                name: "Chữ c",
+                strokes: [
+                    { type: "arcOpen", x: 170, y: 160, r: 45, startAngle: Math.PI * 0.3, endAngle: Math.PI * 1.7 }
+                ],
+                startDot: { x: 195, y: 125 }
+            },
+            {
+                name: "Chữ d",
+                strokes: [
+                    { type: "arc", x: 150, y: 160, r: 40, startAngle: 0, endAngle: Math.PI * 2 }, // Vòng tròn
+                    { type: "line", startX: 190, startY: 90, endX: 190, endY: 220 } // Sổ dọc
+                ],
+                startDot: { x: 190, y: 90 }
+            },
+            {
+                name: "Chữ e",
+                strokes: [
+                    { type: "line", startX: 130, startY: 160, endX: 210, endY: 160 }, // Nét ngang
+                    { type: "arcOpen", x: 170, y: 160, r: 40, startAngle: Math.PI * 0.1, endAngle: Math.PI * 1.8 }
+                ],
+                startDot: { x: 130, y: 160 }
+            }
+        ];
+
+        let currentItem = null;
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const drawCtx = drawCanvas.getContext('2d');
+        let isDrawing = false, userPoints = [];
+
+        function initMenu() {
+            const chuGrid = document.getElementById('chu-cai-grid');
+            chuGrid.innerHTML = '';
+            danhSachChu.forEach(item => {
+                let btn = document.createElement('button');
+                btn.className = 'item-btn';
+                btn.innerText = item.name.replace("Chữ ", "").toUpperCase();
+                btn.onclick = () => selectItem(item);
+                chuGrid.appendChild(btn);
+            });
+        }
+
+        function selectItem(item) {
+            currentItem = item;
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('writing-screen').style.display = 'flex';
+            document.getElementById('writing-title').innerText = `✍️ ${item.name}`;
+            drawGridAndSample();
+            setupDrawContext();
+        }
+
+        function backToMenu() {
+            document.getElementById('writing-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+            clearCanvas();
+        }
+
+        function drawGridAndSample() {
+            bgCtx.clearRect(0, 0, 320, 320);
+            bgCtx.lineWidth = 1;
+            bgCtx.strokeStyle = '#e0f2f1';
+            const step = 40;
+            for (let x = 0; x <= 320; x += step) { bgCtx.beginPath(); bgCtx.moveTo(x, 0); bgCtx.lineTo(x, 320); bgCtx.stroke(); }
+            for (let y = 0; y <= 320; y += step) { bgCtx.beginPath(); bgCtx.moveTo(0, y); bgCtx.lineTo(320, y); bgCtx.stroke(); }
+
+            bgCtx.strokeStyle = '#4db6ac'; bgCtx.lineWidth = 2;
+            bgCtx.beginPath(); bgCtx.moveTo(160, 0); bgCtx.lineTo(160, 320); bgCtx.stroke();
+            bgCtx.beginPath(); bgCtx.moveTo(0, 160); bgCtx.lineTo(320, 160); bgCtx.stroke();
+
+            if (currentItem) {
+                // Vẽ nét mờ mẫu theo hình dáng cấu trúc chữ
+                bgCtx.strokeStyle = '#cbd5e1';
+                bgCtx.lineWidth = 12;
+                bgCtx.lineCap = 'round';
+
+                currentItem.strokes.forEach(st => {
+                    bgCtx.beginPath();
+                    if (st.type === 'line') {
+                        bgCtx.moveTo(st.startX, st.startY);
+                        bgCtx.lineTo(st.endX, st.endY);
+                    } else if (st.type === 'arc' || st.type === 'arcOpen') {
+                        bgCtx.arc(st.x, st.y, st.r, st.startAngle, st.endAngle);
+                    }
+                    bgCtx.stroke();
+                });
+
+                // Chấm đỏ điểm bắt đầu
+                bgCtx.fillStyle = '#ef4444';
+                bgCtx.beginPath();
+                bgCtx.arc(currentItem.startDot.x, currentItem.startDot.y, 10, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+
+        function setupDrawContext() {
+            drawCtx.lineWidth = 12; drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round'; drawCtx.strokeStyle = '#8b5cf6';
+        }
+
+        function getPos(e) {
+            const rect = drawCanvas.getBoundingClientRect();
+            return {
+                x: (e.touches ? e.touches[0].clientX : e.clientX) - rect.left,
+                y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
+            };
+        }
+
+        function startDrawing(e) { isDrawing = true; userPoints = []; let pos = getPos(e); userPoints.push(pos); drawCtx.clearRect(0,0,320,320); drawCtx.beginPath(); drawCtx.moveTo(pos.x, pos.y); }
+        function draw(e) { if (!isDrawing) return; let pos = getPos(e); userPoints.push(pos); drawCtx.lineTo(pos.x, pos.y); drawCtx.stroke(); }
+        function stopDrawing() { 
+            if (isDrawing) { 
+                isDrawing = false; 
+                evaluateWriting(); 
+            } 
+        }
+
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+        drawCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        drawCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        drawCanvas.addEventListener('touchend', stopDrawing);
+
+        function playRandomAudio(prefix, maxCount) {
+            let randomIndex = Math.floor(Math.random() * maxCount) + 1;
+            let audio = new Audio(`${prefix}${randomIndex}.mp3`);
+            audio.playbackRate = 1.2;
+            audio.play().catch(err => {});
+        }
+
+                function evaluateWriting() {
+            // Nếu bé viết quá ngắn hoặc chưa thả tay đúng chỗ
+            if (userPoints.length < 5 || !currentItem) {
+                playRandomAudio('fail', 3);
+                setTimeout(clearCanvas, 1000);
+                return;
+            }
+
+            // 1. Kiểm tra điểm xuất phát (phải gần chấm đỏ)
+            let startPoint = userPoints[0];
+            let startDist = Math.hypot(startPoint.x - currentItem.startDot.x, startPoint.y - currentItem.startDot.y);
+            if (startDist > 45) {
+                playRandomAudio('fail', 3);
+                setTimeout(clearCanvas, 1000);
+                return;
+            }
+
+            // 2. Kiểm tra điểm kết thúc (phải kéo tới gần cuối nét mờ mẫu)
+            // Lấy nét cuối cùng của mẫu để kiểm tra điểm đích
+            let lastStroke = currentItem.strokes ? currentItem.strokes[currentItem.strokes.length - 1] : currentItem;
+            let targetEndX = lastStroke.endX || lastStroke.startX || 200;
+            let targetEndY = lastStroke.endY || lastStroke.startY || 200;
+
+            let endPoint = userPoints[userPoints.length - 1];
+            let endDist = Math.hypot(endPoint.x - targetEndX, endPoint.y - targetEndY);
+
+            // Nếu kết thúc cách xa điểm đích quá 50 pixel -> coi như viết sai hoặc chưa xong
+            if (endDist > 50) {
+                playRandomAudio('fail', 3);
+                setTimeout(clearCanvas, 1000);
+                return;
+            }
+
+            // --- NẾU ĐẠT CHUẨN: MỚI KHEN VÀ NỔ PHÁO HOA ---
+            playRandomAudio('true', 5);
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+            }
+        }
+
+
+        function clearCanvas() { drawCtx.clearRect(0, 0, 320, 320); }
+        window.onload = initMenu;
+    </script>
+</body>
+</html>

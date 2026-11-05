@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Học Bảng Âm Vần Tiếng Việt</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            margin: 0;
+            padding: 15px;
+            text-align: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #ff4500;
+            margin-bottom: 5px;
+            font-size: 28px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+        p {
+            color: #444;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .music-control {
+            background-color: #ff1493;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            box-shadow: 0 4px #c71585;
+            transition: 0.1s;
+        }
+        .music-control:active {
+            transform: scale(0.95);
+        }
+        .tabs {
+            margin: 15px 0;
+        }
+        .tab-btn {
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px #c71585;
+            transition: 0.1s;
+        }
+        .tab-btn.active {
+            background-color: #ffa500;
+            box-shadow: 0 4px #ff8c00;
+            transform: scale(1.05);
+        }
+        .section {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        .section.active {
+            display: block;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 12px;
+            padding: 5px;
+        }
+        .card {
+            background-color: #e0ffff;
+            border: 3px solid #00ced1;
+            border-radius: 16px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            color: #d92020;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transition: all 0.15s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            background-color: #bce8e8;
+        }
+        .card:active {
+            background-color: #00ffff;
+            transform: scale(0.92);
+        }
+        .vowel-card {
+            font-size: 24px;
+            background-color: #fff0f5;
+            border-color: #ffb6c1;
+            color: #2b580c;
+        }
+        .thanh-card {
+            background-color: #fffacd;
+            border-color: #ffd700;
+            font-size: 28px;
+            color: #b8860b;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌟 Bé Học Bảng Âm Vần 🌟</h1>
+    
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">1. Âm</button>
+        <button class="tab-btn" onclick="switchTab(1)">2. Thanh Dấu</button>
+        <button class="tab-btn" onclick="switchTab(2)">3. Vần</button>
+    </div>
+
+    <div class="section active" id="sec-0">
+        <h2>Bảng Âm Tiếng Việt</h2>
+        <div class="grid" id="am-grid"></div>
+    </div>
+
+    <div class="section" id="sec-1">
+        <h2>Bảng Dấu Thanh</h2>
+        <!-- Thay đổi độ rộng và kiểu hiển thị grid cho cân đối 5 dấu -->
+        <div class="grid" style="grid-template-columns: repeat(5, 1fr); max-width: 500px; margin: 0 auto;" id="thanh-grid"></div>
+    </div>
+
+    <div class="section" id="sec-2">
+        <h2>Bảng Vần Tiếng Việt</h2>
+        <div class="grid" id="van-grid"></div>
+    </div>
+
+    <script>
+        const amList = [
+            "a", "ă", "â", "b", "c", "d", "đ", "e", "ê", "g", "h", "i", "k", "l", "m", "n", "o", "ô", "ơ", "p",
+            "q", "r", "s", "t", "u", "ư", "v", "x", "y", "ch", "kh", "th", "nh", "ph", "gh", "ng", "qu", "tr", "gi", "ngh"
+        ];
+
+        // Hiển thị chữ cái có dấu rõ ràng trên màn hình, gọi đúng tên file mp3 tương ứng
+        const thanhList = [
+            { label: "́", name: "dấu sắc", file: "sắc" },
+            { label: "̀", name: "dấu huyền", file: "huyền" },
+            { label: "̉", name: "dấu hỏi", file: "hỏi" },
+            { label: "̃", name: "dấu ngã", file: "ngã" },
+            { label: "̣", name: "dấu nặng", file: "nặng" }
+        ];
+        
+
+        const vanList = [
+            "ia", "ua", "ưa", "ao", "eo", "au", "êu", "âu", "iu", "ưu", "ai", "oi", "ôi", "ơi", "ui",
+            "ưi", "ay", "ây", "ac", "âc", "ăc", "oc", "ôc", "uc", "ưc", "at", "ăt", "ât", "et", "êt",
+            "it", "ot", "ôt", "ơt", "ut", "ưt", "an", "ăn", "ân", "en", "ên", "in", "on", "ôn", "ơn",
+            "un", "ang", "ăng", "âng", "ong", "ông", "ung", "ưng", "ach", "êch", "ich", "am", "ăm", "âm", "em",
+            "êm", "om", "ôm", "ơm", "im", "um", "ap", "ăp", "âp", "ep", "êp", "op", "ôp", "ơp", "ip",
+            "up", "anh", "ênh", "inh", "ươu", "iêu", "yêu", "uôi", "ươi", "iêc", "uôc", "ước", "iêt", "yêt", "uôt",
+            "ướt", "iên", "yên", "uôn", "ươn", "iêm", "yêm", "uôm", "ươm", "iêp", "ươp", "oa", "oe", "uê", "uy",
+            "oai", "oay", "oac", "oat", "oan", "uân", "uyt", "oăt", "uât", "oam", "oap", "ooc", "uyp", "oeo", "uyu",
+            "iêng", "yêng", "uông", "ương", "oang", "uyên", "uyêt", "oanh", "uynh", "uych", "oăng", "uâng", "oong"
+        ];
+
+      
+
+        // Phát 1 file audio đơn bình thường (cho Âm và Vần)
+        function playAudio(fileName) {
+            if (fileName === "q") {
+                fileName = "cu"; 
+            }
+
+            let audio = new Audio(`audio/${fileName}.mp3`);
+            audio.play().catch(error => {
+                console.log("Không tìm thấy file audio: audio/" + fileName + ".mp3");
+            });
+        }
+
+        // Phát tuần tự 2 file audio riêng biệt cho Dấu Thanh: chạy "dấu.mp3" trước, rồi nối tiếp file dấu sau
+        function playDoubleAudio(toneFileName) {
+            let audioDau = new Audio(`audio/dấu.mp3`);
+            
+            audioDau.play().then(() => {
+                audioDau.onended = () => {
+                    let audioTone = new Audio(`audio/${toneFileName}.mp3`);
+                    audioTone.play().catch(err => {
+                        console.log("Không tìm thấy file audio: audio/" + toneFileName + ".mp3");
+                    });
+                };
+            }).catch(error => {
+                let audioTone = new Audio(`audio/${toneFileName}.mp3`);
+                audioTone.play();
+            });
+        }
+
+        function renderAm() {
+            const container = document.getElementById('am-grid');
+            amList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerText = item;
+                card.onclick = () => playAudio(item);
+                container.appendChild(card);
+            });
+        }
+
+        function renderThanh() {
+            const container = document.getElementById('thanh-grid');
+            thanhList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card thanh-card';
+                card.innerText = item.label; // Hiển thị Á, À, Ả, Ã, Ạ to rõ nét
+                card.onclick = () => playDoubleAudio(item.file);
+                container.appendChild(card);
+            });
+        }
+
+        function renderVan() {
+            const container = document.getElementById('van-grid');
+            vanList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card vowel-card';
+                card.innerText = item;
+                card.onclick = () => playAudio(item);
+                container.appendChild(card);
+            });
+        }
+
+        function switchTab(index) {
+            const sections = document.querySelectorAll('.section');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            sections.forEach((sec, i) => {
+                sec.classList.toggle('active', i === index);
+            });
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        window.onload = () => {
+            renderAm();
+            renderThanh();
+            renderVan();
+        };
+    </script>
+</body>
+</html>

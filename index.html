@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Vui Học Tiếng Việt</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff4500;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0px #fff, 5px 5px 0px rgba(0,0,0,0.1);
+        }
+
+        p {
+            color: #444;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border: 4px solid #fff;
+            border-radius: 25px;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d63031;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .menu-btn:nth-child(2) {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #009432;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌟 BÉ VUI HỌC TIẾNG VIỆT 🌟</h1>
+    <p>👉 Bé hãy chọn một mục bên dưới để bắt đầu nhé!</p>
+
+        <div class="menu-container">
+        <!-- Mục 1: Học âm vần -->
+        <a href="hoc_am_van.html" class="menu-btn">
+            <span>📚</span> 1. Bé Học Âm Vần
+        </a>
+
+        <!-- Mục 2: Trả lời câu hỏi -->
+        <a href="quiz.html" class="menu-btn">
+            <span>🎮</span> 2. Trả Lời Câu Hỏi
+        </a>
+
+        <!-- Mục 3: Bé tập ghép chữ -->
+        <a href="ghep_chu.html" class="menu-btn" style="background: linear-gradient(135deg, #fbc531 0%, #e84118 100%); color: white;">
+            <span>🧩</span> 3. Bé Tập Ghép Chữ
+        </a>
+
+        <!-- Mục 4.1: Bé tập viết chữ cái -->
+        <a href="tap_viet_chu.html" class="menu-btn" style="background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%); color: #00b894;">
+            <span>✍️</span> 4. Bé Tập Viết Chữ Cái
+        </a>
+
+        <!-- Mục 4.2: Bé tập viết dấu thanh -->
+        <a href="tap_viet_dau.html" class="menu-btn" style="background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); color: #d35400;">
+            <span>✏️</span> 5. Bé Tập Viết Dấu Thanh
+        </a>
+
+        <!-- Nút Cài đặt ứng dụng trực tiếp -->
+        <button id="install-app-btn" class="menu-btn install-btn">
+            <span>📲</span> Cài Đặt Ứng Dụng Về Máy
+        </button>
+    </div>
+
+
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bé Tập Viết Ô Ly</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .writing-box {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin: 5px 0 10px 0;
+            font-size: 1.5rem;
+        }
+
+        .level-title {
+            font-size: 1rem;
+            color: #e65100;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            border: 3px solid #0288d1;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 320px;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .btn-clear { background-color: #ff7675; color: white; }
+        .btn-next { background-color: #00b894; color: white; }
+        .btn-back { background-color: #74b9ff; color: white; text-decoration: none; display: inline-block; }
+
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="writing-box">
+        <h2 id="title-text">✍️ Tập Viết: Dấu Huyền</h2>
+        <div class="level-title" id="level-text">Cấp độ 2: Đặt bút đúng điểm chấm đỏ</div>
+
+        <div class="canvas-container">
+            <canvas id="bgCanvas" width="320" height="320"></canvas>
+            <canvas id="drawCanvas" width="320" height="320"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-clear" onclick="clearCanvas()">🔄 Viết Lại</button>
+            <button class="btn btn-next" onclick="nextLevel()">➡️ Tiếp Theo</button>
+        </div>
+        <br>
+        <a href="index.html" class="btn btn-back">⬅ Về Menu Chính</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <script>
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const drawCtx = drawCanvas.getContext('2d');
+
+        let isDrawing = false;
+        let currentLevel = 2;
+        let userPoints = [];
+
+        const sampleStroke = {
+            startX: 80,  startY: 80,
+            endX: 240,   endY: 240
+        };
+
+        function drawGrid() {
+            bgCtx.clearRect(0, 0, 320, 320);
+            bgCtx.lineWidth = 1;
+
+            bgCtx.strokeStyle = '#e0f2f1';
+            const step = 40;
+            for (let x = 0; x <= 320; x += step) {
+                bgCtx.beginPath(); bgCtx.moveTo(x, 0); bgCtx.lineTo(x, 320); bgCtx.stroke();
+            }
+            for (let y = 0; y <= 320; y += step) {
+                bgCtx.beginPath(); bgCtx.moveTo(0, y); bgCtx.lineTo(320, y); bgCtx.stroke();
+            }
+
+            bgCtx.strokeStyle = '#4db6ac';
+            bgCtx.lineWidth = 2;
+            bgCtx.beginPath(); bgCtx.moveTo(160, 0); bgCtx.lineTo(160, 320); bgCtx.stroke();
+            bgCtx.beginPath(); bgCtx.moveTo(0, 160); bgCtx.lineTo(320, 160); bgCtx.stroke();
+
+            if (currentLevel === 1 || currentLevel === 2) {
+                bgCtx.strokeStyle = '#cbd5e1';
+                bgCtx.lineWidth = 14;
+                bgCtx.lineCap = 'round';
+                bgCtx.beginPath();
+                bgCtx.moveTo(sampleStroke.startX, sampleStroke.startY);
+                bgCtx.lineTo(sampleStroke.endX, sampleStroke.endY);
+                bgCtx.stroke();
+
+                bgCtx.fillStyle = '#ef4444';
+                bgCtx.beginPath();
+                bgCtx.arc(sampleStroke.startX, sampleStroke.startY, 12, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+
+        function setupDrawContext() {
+            drawCtx.lineWidth = 14;
+            drawCtx.lineCap = 'round';
+            drawCtx.lineJoin = 'round';
+            drawCtx.strokeStyle = '#8b5cf6';
+        }
+
+        function getPos(e) {
+            const rect = drawCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            userPoints = [];
+            const pos = getPos(e);
+            userPoints.push(pos);
+            drawCtx.clearRect(0, 0, 320, 320);
+            drawCtx.beginPath();
+            drawCtx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            userPoints.push(pos);
+            drawCtx.lineTo(pos.x, pos.y);
+            drawCtx.stroke();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                evaluateWriting();
+            }
+        }
+
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+
+        drawCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        drawCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        drawCanvas.addEventListener('touchend', stopDrawing);
+
+        function evaluateWriting() {
+            if (userPoints.length < 5) {
+                showMistake();
+                return;
+            }
+
+            let startPoint = userPoints[0];
+            let startDist = Math.hypot(startPoint.x - sampleStroke.startX, startPoint.y - sampleStroke.startY);
+            if (startDist > 35) {
+                showMistake();
+                return;
+            }
+
+            let endPoint = userPoints[userPoints.length - 1];
+            let endDist = Math.hypot(endPoint.x - sampleStroke.endX, endPoint.y - sampleStroke.endY);
+            if (endDist > 45) {
+                showMistake();
+                return;
+            }
+
+            let deviationCount = 0;
+            userPoints.forEach(p => {
+                let numerator = Math.abs((sampleStroke.endY - sampleStroke.startY) * p.x - (sampleStroke.endX - sampleStroke.startX) * p.y + sampleStroke.endX * sampleStroke.startY - sampleStroke.endY * sampleStroke.startX);
+                let denominator = Math.hypot(sampleStroke.endY - sampleStroke.startY, sampleStroke.endX - sampleStroke.startX);
+                let distanceToLine = numerator / denominator;
+                
+                if (distanceToLine > 25) {
+                    deviationCount++;
+                }
+            });
+
+            if (deviationCount > userPoints.length * 0.3) {
+                showMistake();
+                return;
+            }
+
+            // --- KHI VIẾT ĐÚNG: CHỌN NGẪU NHIÊN 1 TRONG CÁC FILE TRUE (1-5) ---
+            playRandomAudio('true', 5);
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function showMistake() {
+            // --- KHI VIẾT SAI/CHƯA ĐÚNG: CHỌN NGẪU NHIÊN 1 TRONG CÁC FILE FAIL (1-3) ---
+            playRandomAudio('fail', 3);
+            setTimeout(clearCanvas, 1000);
+        }
+
+        // --- HÀM RANDOM VÀ PHÁT FILE ÂM THANH ---
+                // --- HÀM RANDOM VÀ PHÁT FILE ÂM THANH ---
+        function playRandomAudio(prefix, maxCount) {
+            let randomIndex = Math.floor(Math.random() * maxCount) + 1; // Random từ 1 đến maxCount
+            
+            // Nếu các file true1, fail1 nằm chung thư mục với file tap_viet.html, ta dùng đường dẫn trực tiếp:
+            let audio = new Audio(`${prefix}${randomIndex}.mp3`);
+            
+            // Hoặc nếu bạn đã bỏ các file đó vào thư mục audio thì dùng: let audio = new Audio(`audio/${prefix}${randomIndex}.mp3`);
+
+            audio.playbackRate = 1.2; // Tốc độ hoạt bát
+            audio.play().catch(err => console.log("Không tìm thấy file audio: ", err));
+        }
+
+
+        function clearCanvas() {
+            drawCtx.clearRect(0, 0, 320, 320);
+        }
+
+        function nextLevel() {
+            clearCanvas();
+            currentLevel++;
+            if (currentLevel > 3) currentLevel = 1;
+
+            if (currentLevel === 1) {
+                document.getElementById('level-text').innerText = "Cấp độ 1: Tập tô theo nét mờ";
+            } else if (currentLevel === 2) {
+                document.getElementById('level-text').innerText = "Cấp độ 2: Đặt bút đúng điểm chấm đỏ";
+            } else {
+                document.getElementById('level-text').innerText = "Cấp độ 3: Bé tự nét vào ô ly";
+            }
+            drawGrid();
+        }
+
+        window.onload = () => {
+            drawGrid();
+            setupDrawContext();
+        };
+    </script>
+</body>
+</html>

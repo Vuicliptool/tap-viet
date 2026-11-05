@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Tập Ghép Chữ</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .quiz-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 550px;
+            width: 95%;
+            text-align: center;
+            border: 4px solid #fff;
+            position: relative;
+        }
+
+        .quiz-box h2 {
+            color: #009432;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .replay-audio-btn {
+            background-color: #00cec9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        /* Khung hiển thị các ô chữ bé đã chọn để ghép */
+        .target-slot-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            min-height: 60px;
+            align-items: center;
+        }
+
+        .slot {
+            width: 55px;
+            height: 55px;
+            border: 3px dashed #0984e3;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d3436;
+            background: #f1f2f6;
+        }
+
+        .slot.filled {
+            border: 3px solid #00b894;
+            background: #55efc4;
+            color: #2d3436;
+        }
+
+        /* Khung chứa các chữ cái xáo trộn để bé bấm */
+        .letters-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .letter-btn {
+            background-color: #ffeaa7;
+            border: 3px solid #fdcb6e;
+            border-radius: 15px;
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #d63031;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .letter-btn:active {
+            transform: scale(0.90);
+        }
+
+        .letter-btn.selected {
+            background-color: #b2bec3;
+            border-color: #636e72;
+            color: #636e72;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .reset-btn {
+            background-color: #fd79a8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .score-board {
+            font-size: 1.2rem;
+            color: #e17055;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.3);
+            display: none;
+            z-index: 10;
+            border-radius: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-box">
+        <div id="overlay"></div>
+        <h2>🧩 Bé Tập Ghép Chữ</h2>
+        <div class="score-board" id="score-text">Điểm số: 0 ⭐</div>
+        
+        <button class="replay-audio-btn" onclick="playTargetAudio()">🔊 Nghe Lại Từ</button>
+
+        <div class="question-text" id="instruction-text">Bé hãy sắp xếp các chữ cái thành từ đúng nhé!</div>
+        
+        <!-- Các ô trống hiển thị kết quả bé đang ghép -->
+        <div class="target-slot-container" id="slot-container"></div>
+
+        <!-- Các chữ cái xáo trộn để bé bấm -->
+        <div class="letters-grid" id="letters-container"></div>
+
+        <div class="action-row">
+            <button class="reset-btn" onclick="resetCurrentWord()">🔄 Chọn Lại</button>
+            <a href="index.html" class="back-btn">⬅ Về Menu</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        const wordsList = [
+            "ba", "mẹ", "bà", "ca", "đi", "xe", "cá", "gà", "lá", "nhà", "tay", "mây"
+        ];
+
+        let currentWordIndex = 0;
+        let currentTargetWord = "";
+        let shuffledLetters = [];
+        let userSelectedLetters = [];
+        let score = 0;
+        const maxQuestions = 10;
+        let clickedButtonIndices = [];
+
+        function playAudioFile(fileName, onComplete = null) {
+            let audio = new Audio(`audio/${fileName}.mp3`);
+            audio.playbackRate = 1.2;
+            audio.play().then(() => {
+                if (onComplete) audio.onended = onComplete;
+            }).catch(e => {
+                console.log(`Không tìm thấy file: audio/${fileName}.mp3`);
+                if (onComplete) onComplete();
+            });
+        }
+
+        // --- HÀM RANDOM VÀ PHÁT FILE ÂM THANH ĐÚNG/SAI ---
+        function playRandomAudio(prefix, maxCount, onComplete = null) {
+            let randomIndex = Math.floor(Math.random() * maxCount) + 1;
+            let audio = new Audio(`${prefix}${randomIndex}.mp3`); // Lưu ý: Nếu file để ở thư mục gốc cùng cấp HTML. Nếu để trong thư mục audio thì sửa thành `audio/${prefix}${randomIndex}.mp3`
+            audio.playbackRate = 1.2;
+            audio.play().then(() => {
+                if (onComplete) audio.onended = onComplete;
+            }).catch(err => {
+                console.log("Không tìm thấy file audio: ", err);
+                if (onComplete) onComplete();
+            });
+        }
+
+        function playTargetAudio() {
+            if (!currentTargetWord) return;
+            playAudioFile(currentTargetWord);
+        }
+
+        function loadNewWord() {
+            document.getElementById('overlay').style.display = 'none';
+
+            if (currentWordIndex >= maxQuestions) {
+                document.getElementById('instruction-text').innerHTML = `🎉 Bé đã hoàn thành xuất sắc trò chơi ghép chữ!<br>Tổng điểm: ${score}/${maxQuestions} ⭐`;
+                document.getElementById('slot-container').innerHTML = '';
+                document.getElementById('letters-container').innerHTML = '';
+                document.querySelector('.replay-audio-btn').style.display = 'none';
+                document.querySelector('.reset-btn').style.display = 'none';
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            currentWordIndex++;
+            currentTargetWord = wordsList[Math.floor(Math.random() * wordsList.length)];
+            userSelectedLetters = [];
+            clickedButtonIndices = [];
+
+            document.getElementById('score-text').innerText = `Điểm số: ${score} ⭐ (Câu ${currentWordIndex}/${maxQuestions})`;
+
+            let rawChars = currentTargetWord.split('');
+            shuffledLetters = [...rawChars].sort(() => Math.random() - 0.5);
+
+            renderSlots();
+            renderLetters();
+
+            setTimeout(playTargetAudio, 400);
+        }
+
+        function renderSlots() {
+            const slotContainer = document.getElementById('slot-container');
+            slotContainer.innerHTML = '';
+            for (let i = 0; i < currentTargetWord.length; i++) {
+                let slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.id = `slot-${i}`;
+                slot.innerText = userSelectedLetters[i] || '';
+                if (userSelectedLetters[i]) slot.classList.add('filled');
+                slotContainer.appendChild(slot);
+            }
+        }
+
+        function renderLetters() {
+            const lettersContainer = document.getElementById('letters-container');
+            lettersContainer.innerHTML = '';
+
+            shuffledLetters.forEach((char, index) => {
+                let btn = document.createElement('button');
+                btn.className = 'letter-btn';
+                btn.innerText = char;
+                btn.id = `letter-btn-${index}`;
+                
+                if (clickedButtonIndices.includes(index)) {
+                    btn.classList.add('selected');
+                }
+
+                btn.onclick = () => selectLetter(char, index);
+                lettersContainer.appendChild(btn);
+            });
+        }
+
+        function selectLetter(char, btnIndex) {
+            if (clickedButtonIndices.includes(btnIndex)) return;
+
+            if (userSelectedLetters.length < currentTargetWord.length) {
+                userSelectedLetters.push(char);
+                clickedButtonIndices.push(btnIndex);
+
+                renderSlots();
+                renderLetters();
+
+                if (userSelectedLetters.length === currentTargetWord.length) {
+                    let formedWord = userSelectedLetters.join('');
+                    if (formedWord === currentTargetWord) {
+                        // Ghép Đúng -> Random true1 đến true5
+                        score++;
+                        document.getElementById('overlay').style.display = 'block';
+
+                        playRandomAudio('true', 5);
+
+                        let duration = 4 * 1000;
+                        let end = Date.now() + duration;
+                        let interval = setInterval(() => {
+                            if (Date.now() > end) return clearInterval(interval);
+                            if (typeof confetti === 'function') {
+                                confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+                            }
+                        }, 250);
+
+                        setTimeout(loadNewWord, 4000);
+                    } else {
+                        // Ghép Sai -> Random fail1 đến fail3
+                        playRandomAudio('fail', 3);
+                        setTimeout(resetCurrentWord, 1200);
+                    }
+                }
+            }
+        }
+
+        function resetCurrentWord() {
+            userSelectedLetters = [];
+            clickedButtonIndices = [];
+            renderSlots();
+            renderLetters();
+        }
+
+        window.onload = () => {
+            loadNewWord();
+        };
+    </script>
+</body>
+</html>

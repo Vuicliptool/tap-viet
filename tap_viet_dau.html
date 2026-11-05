@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Tập Viết Dấu Thanh</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .writing-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 450px;
+            width: 95%;
+            text-align: center;
+            border: 4px solid #fff;
+            position: relative;
+        }
+
+        .writing-box h2 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 1.6rem;
+        }
+
+        #menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .grid-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .item-btn {
+            background: #fff8e1;
+            border: 3px solid #ffa000;
+            border-radius: 18px;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff6f00;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .item-btn:hover {
+            background: #ffe0b2;
+            transform: translateY(-2px);
+        }
+
+        .item-btn:active {
+            transform: scale(0.95);
+        }
+
+        #writing-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .level-title {
+            font-size: 0.95rem;
+            color: #e65100;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            border: 3px solid #ffa000;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            margin: 0 auto;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 320px;
+            border-radius: 10px;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-clear {
+            background-color: #ff7675;
+            color: white;
+        }
+
+        .btn-back-menu {
+            background-color: #74b9ff;
+            color: white;
+        }
+
+        .back-btn {
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #d63031;
+        }
+
+        .replay-audio-btn {
+            background-color: #00cec9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .replay-audio-btn:active {
+            transform: scale(0.95);
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.3);
+            display: none;
+            z-index: 10;
+            border-radius: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="writing-box">
+        <div id="overlay"></div>
+
+        <!-- MÀN HÌNH CHỌN DẤU THANH -->
+        <div id="menu-screen">
+            <h2>📌 Bé Tập Viết Dấu Thanh</h2>
+            <p style="font-size: 1rem; color: #555;">Chọn dấu thanh bé muốn luyện tập nhé!</p>
+            <div class="grid-items" id="dau-thanh-grid"></div>
+            <br>
+            <a href="index.html" class="back-btn">⬅ Về Menu Chính</a>
+        </div>
+
+        <!-- MÀN HÌNH LUYỆN VIẾT -->
+        <div id="writing-screen">
+            <h2 id="writing-title">✍️ Tập Viết</h2>
+            <button class="replay-audio-btn" onclick="playCurrentInstruction()">🔊 Nghe Lại Hướng Dẫn</button>
+            <div class="level-title">Hướng dẫn: Đặt bút từ chấm đỏ và kéo theo nét mờ</div>
+            <div class="canvas-container">
+                <canvas id="bgCanvas" width="320" height="320"></canvas>
+                <canvas id="drawCanvas" width="320" height="320"></canvas>
+            </div>
+            <div class="controls">
+                <button class="btn btn-clear" onclick="clearCanvas()">🔄 Viết Lại</button>
+                <button class="btn btn-back-menu" onclick="backToMenu()">📂 Chọn Dấu Khác</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // Cấu hình danh sách dấu thanh đồng bộ chuẩn tên file audio có sẵn
+        const danhSachDau = [
+            {
+                name: "dấu sắc",
+                label: "Dấu sắc",
+                audioSeq: ["dấu", "sắc"], // Phát lần lượt file dấu.mp3 và sắc.mp3
+                type: "line",
+                startX: 110, startY: 200, endX: 210, endY: 100,
+                startDot: { x: 110, y: 200 }
+            },
+            {
+                name: "dấu huyền",
+                label: "Dấu huyền",
+                audioSeq: ["dấu", "huyền"],
+                type: "line",
+                startX: 110, startY: 100, endX: 210, endY: 200,
+                startDot: { x: 110, y: 100 }
+            },
+            {
+                name: "dấu hỏi",
+                label: "Dấu hỏi",
+                audioSeq: ["dấu", "hỏi"],
+                type: "curveHoi",
+                startX: 130, startY: 170, endX: 160, endY: 190,
+                startDot: { x: 130, y: 170 }
+            },
+            {
+                name: "dấu ngã",
+                label: "Dấu ngã",
+                audioSeq: ["dấu", "ngã"],
+                type: "curveNga",
+                startX: 110, startY: 170, endX: 210, endY: 170,
+                startDot: { x: 110, y: 170 }
+            },
+            {
+                name: "dấu nặng",
+                label: "Dấu nặng",
+                audioSeq: ["dấu", "nặng"],
+                type: "dot",
+                startX: 160, startY: 190, endX: 160, endY: 190,
+                startDot: { x: 160, y: 190 }
+            }
+        ];
+
+        let currentItem = null;
+        let currentAudio = null;
+        let repeatTimer = null;
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const drawCtx = drawCanvas.getContext('2d');
+        let isDrawing = false, userPoints = [];
+
+        // --- HÀM GHÉP VÀ PHÁT TUẦN TỰ GIỐNG HỆT FILE QUIZ ---
+        function playAudioSequence(audioFiles, index = 0, onComplete = null) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            if (index >= audioFiles.length) {
+                if (typeof onComplete === 'function') onComplete();
+                return;
+            }
+            
+            let fileName = audioFiles[index];
+            let audioPath = `audio/${fileName}.mp3`;
+            currentAudio = new Audio(audioPath);
+            currentAudio.playbackRate = 1.2;
+
+            currentAudio.play().then(() => {
+                currentAudio.onended = () => {
+                    playAudioSequence(audioFiles, index + 1, onComplete);
+                };
+            }).catch(error => {
+                console.log(`Không tìm thấy file audio: ${audioPath}`);
+                playAudioSequence(audioFiles, index + 1, onComplete);
+            });
+        }
+
+        // --- HÀM RANDOM ÂM THANH ĐÚNG / SAI ---
+        function playRandomAudio(prefix, maxCount, onComplete = null) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            let randomIndex = Math.floor(Math.random() * maxCount) + 1;
+            let audioPath = `${prefix}${randomIndex}.mp3`;
+            currentAudio = new Audio(audioPath);
+            currentAudio.playbackRate = 1.2;
+            currentAudio.play().then(() => {
+                if (onComplete) currentAudio.onended = onComplete;
+            }).catch(err => {
+                console.log("Không tìm thấy file audio đúng/sai: ", err);
+                if (onComplete) onComplete();
+            });
+        }
+
+        function clearRepeatTimer() {
+            if (repeatTimer) {
+                clearTimeout(repeatTimer);
+                repeatTimer = null;
+            }
+        }
+
+        function startRepeatTimer() {
+            clearRepeatTimer();
+            repeatTimer = setTimeout(() => {
+                playCurrentInstruction();
+                startRepeatTimer();
+            }, 6000);
+        }
+
+        function playOpeningSequence() {
+            clearRepeatTimer();
+            // Đọc câu chào mở đầu bằng các từ ngắn gọn chắc chắn có sẵn
+            playAudioSequence(["chúng", "ta", "cùng", "học", "viết", "dấu", "câu"]);
+        }
+
+        function playCurrentInstruction() {
+            if (!currentItem) return;
+            clearRepeatTimer();
+            
+            // 🌟 Đọc tên dấu (ví dụ: ["dấu", "sắc"]) để chạy mượt mà tuyệt đối giống file quiz
+            playAudioSequence(currentItem.audioSeq, 0, () => {
+                startRepeatTimer();
+            });
+        }
+
+        function initMenu() {
+            const dauGrid = document.getElementById('dau-thanh-grid');
+            if (!dauGrid) return;
+            dauGrid.innerHTML = '';
+            
+            danhSachDau.forEach(item => {
+                let btn = document.createElement('button');
+                btn.className = 'item-btn';
+                btn.innerText = item.label;
+                btn.onclick = () => {
+                    let unlockAudio = new Audio();
+                    unlockAudio.play().catch(() => {});
+
+                    clearRepeatTimer();
+                    if (currentAudio) currentAudio.pause();
+                    selectItem(item);
+                };
+                dauGrid.appendChild(btn);
+            });
+
+            setTimeout(playOpeningSequence, 300);
+        }
+
+        function selectItem(item) {
+            currentItem = item;
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('writing-screen').style.display = 'flex';
+            document.getElementById('writing-title').innerText = `✍️ ${item.label}`;
+            
+            drawGridAndSample();
+            setupDrawContext();
+            clearCanvas();
+
+            setTimeout(playCurrentInstruction, 400);
+        }
+
+        function backToMenu() {
+            clearRepeatTimer();
+            if (currentAudio) currentAudio.pause();
+            
+            document.getElementById('writing-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+            document.getElementById('overlay').style.display = 'none';
+            clearCanvas();
+            
+            playOpeningSequence();
+        }
+
+        function drawGridAndSample() {
+            bgCtx.clearRect(0, 0, 320, 320);
+            bgCtx.lineWidth = 1;
+            bgCtx.strokeStyle = '#ffe0b2';
+            const step = 40;
+            for (let x = 0; x <= 320; x += step) { bgCtx.beginPath(); bgCtx.moveTo(x, 0); bgCtx.lineTo(x, 320); bgCtx.stroke(); }
+            for (let y = 0; y <= 320; y += step) { bgCtx.beginPath(); bgCtx.moveTo(0, y); bgCtx.lineTo(320, y); bgCtx.stroke(); }
+
+            bgCtx.strokeStyle = '#ffa000'; bgCtx.lineWidth = 2;
+            bgCtx.beginPath(); bgCtx.moveTo(160, 0); bgCtx.lineTo(160, 320); bgCtx.stroke();
+            bgCtx.beginPath(); bgCtx.moveTo(0, 160); bgCtx.lineTo(320, 160); bgCtx.stroke();
+
+            if (currentItem) {
+                bgCtx.strokeStyle = '#cbd5e1';
+                bgCtx.lineWidth = 14;
+                bgCtx.lineCap = 'round';
+                bgCtx.beginPath();
+
+                if (currentItem.type === 'line') {
+                    bgCtx.moveTo(currentItem.startX, currentItem.startY);
+                    bgCtx.lineTo(currentItem.endX, currentItem.endY);
+                    bgCtx.stroke();
+                } else if (currentItem.type === 'curveHoi') {
+                    bgCtx.moveTo(130, 170);
+                    bgCtx.bezierCurveTo(130, 110, 190, 110, 160, 190);
+                    bgCtx.stroke();
+                } else if (currentItem.type === 'curveNga') {
+                    bgCtx.moveTo(110, 170);
+                    bgCtx.bezierCurveTo(130, 140, 150, 200, 210, 150);
+                    bgCtx.stroke();
+                } else if (currentItem.type === 'dot') {
+                    bgCtx.fillStyle = '#cbd5e1';
+                    bgCtx.arc(160, 190, 10, 0, Math.PI * 2);
+                    bgCtx.fill();
+                }
+
+                bgCtx.fillStyle = '#ef4444';
+                bgCtx.beginPath();
+                bgCtx.arc(currentItem.startDot.x, currentItem.startDot.y, 10, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+
+        function setupDrawContext() {
+            drawCtx.lineWidth = 14; drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round'; drawCtx.strokeStyle = '#ff6f00';
+        }
+
+        function getPos(e) {
+            const rect = drawCanvas.getBoundingClientRect();
+            return {
+                x: (e.touches ? e.touches[0].clientX : e.clientX) - rect.left,
+                y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
+            };
+        }
+
+        function startDrawing(e) { 
+            clearRepeatTimer();
+            isDrawing = true; 
+            userPoints = []; 
+            let pos = getPos(e); 
+            userPoints.push(pos); 
+            drawCtx.clearRect(0,0,320,320); 
+            drawCtx.beginPath(); 
+            drawCtx.moveTo(pos.x, pos.y); 
+        }
+
+        function draw(e) { 
+            if (!isDrawing) return; 
+            let pos = getPos(e); 
+            userPoints.push(pos); 
+            drawCtx.lineTo(pos.x, pos.y); 
+            drawCtx.stroke(); 
+        }
+
+        function stopDrawing() { 
+            if (isDrawing) { 
+                isDrawing = false; 
+                evaluateWriting(); 
+            } 
+        }
+
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+        drawCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        drawCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        drawCanvas.addEventListener('touchend', stopDrawing);
+
+        function evaluateWriting() {
+            if (userPoints.length < 5 || !currentItem) {
+                playRandomAudio('fail', 3, () => {
+                    startRepeatTimer();
+                });
+                setTimeout(clearCanvas, 1000);
+                return;
+            }
+
+            let startPoint = userPoints[0];
+            let endPoint = userPoints[userPoints.length - 1];
+
+            let startDist = Math.hypot(startPoint.x - currentItem.startDot.x, startPoint.y - currentItem.startDot.y);
+            if (startDist > 45) {
+                playRandomAudio('fail', 3, () => {
+                    startRepeatTimer();
+                });
+                setTimeout(clearCanvas, 1000);
+                return;
+            }
+
+            if (currentItem.type === 'line') {
+                let endDist = Math.hypot(endPoint.x - currentItem.endX, endPoint.y - currentItem.endY);
+                if (endDist > 50) {
+                    playRandomAudio('fail', 3, () => {
+                        startRepeatTimer();
+                    });
+                    setTimeout(clearCanvas, 1000);
+                    return;
+                }
+            } else if (currentItem.type === 'curveHoi' || currentItem.type === 'curveNga') {
+                let targetEndX = currentItem.name === "dấu hỏi" ? 160 : 210;
+                let targetEndY = currentItem.name === "dấu hỏi" ? 190 : 150;
+                let endDist = Math.hypot(endPoint.x - targetEndX, endPoint.y - targetEndY);
+                if (endDist > 50) {
+                    playRandomAudio('fail', 3, () => {
+                        startRepeatTimer();
+                    });
+                    setTimeout(clearCanvas, 1000);
+                    return;
+                }
+            }
+
+            document.getElementById('overlay').style.display = 'block';
+            playRandomAudio('true', 5);
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                clearCanvas();
+                backToMenu();
+            }, 3000);
+        }
+
+        function clearCanvas() { 
+            drawCtx.clearRect(0, 0, 320, 320); 
+        }
+
+        window.onload = function() {
+            initMenu();
+        };
+    </script>
+</body>
+</html>

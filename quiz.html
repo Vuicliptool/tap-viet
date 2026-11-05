@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Trả Lời Câu Hỏi</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .quiz-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 550px;
+            width: 95%;
+            text-align: center;
+            border: 4px solid #fff;
+            position: relative;
+        }
+
+        .quiz-box h2 {
+            color: #009432;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        #welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .start-game-btn {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border: 3px solid #fff;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d63031;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: 0.2s;
+        }
+
+        .start-game-btn:active {
+            transform: scale(0.95);
+        }
+
+        #game-content {
+            display: none;
+        }
+
+        .replay-audio-btn {
+            background-color: #00cec9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .replay-audio-btn:active {
+            transform: scale(0.95);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .answer-btn {
+            background-color: #e0ffff;
+            border: 3px solid #00ced1;
+            border-radius: 18px;
+            padding: 15px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #d92020;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .answer-btn:hover {
+            background-color: #bce8e8;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #d63031;
+        }
+
+        .restart-btn {
+            background-color: #00b894;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            margin-right: 10px;
+        }
+
+        .restart-btn:hover {
+            background-color: #00a8ff;
+        }
+
+        .score-board {
+            font-size: 1.2rem;
+            color: #e17055;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.3);
+            display: none;
+            z-index: 10;
+            border-radius: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-box" id="quiz-screen">
+        <div id="overlay"></div>
+
+        <!-- MÀN HÌNH CHÀO MỞ KHÓA ÂM THANH -->
+        <div id="welcome-screen">
+            <h2>🎮 Trò Chơi Bé Tập Đố Vui</h2>
+            <p style="font-size: 1.1rem; color: #555;">Sẵn sàng tham gia thử thách cùng bé chưa nào?</p>
+            <button class="start-game-btn" onclick="initGame()">🚀 Bắt Đầu Chơi</button>
+            <br>
+            <a href="index.html" class="back-btn">⬅ Về Menu Chính</a>
+        </div>
+
+        <!-- NỘI DUNG TRÒ CHƠI CHÍNH -->
+        <div id="game-content">
+            <h2>🎮 Trò Chơi Bé Tập Đố Vui</h2>
+            <div class="score-board" id="score-text">Điểm số: 0 ⭐</div>
+            
+            <button class="replay-audio-btn" onclick="playQuestionSequence()">🔊 Nghe Lại Câu Hỏi</button>
+
+            <div class="question-text" id="question-container">Đang tải câu hỏi...</div>
+            
+            <div class="answers-grid" id="answers-container"></div>
+
+            <div id="action-buttons">
+                <a href="index.html" class="back-btn">⬅ Về Menu Chính</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        const amSource = [
+            "a", "ă", "â", "b", "c", "d", "đ", "e", "ê", "g", "h", "i", "k", "l", "m", "n", "o", "ô", "ơ", "p",
+            "q", "r", "s", "t", "u", "ư", "v", "x", "y", "ch", "kh", "th", "nh", "ph", "gh", "ng", "qu", "tr", "gi", "ngh"
+        ];
+
+        const vanSource = [
+            "ia", "ua", "ưa", "ao", "eo", "au", "êu", "âu", "iu", "ưu", "ai", "oi", "ôi", "ơi", "ui",
+            "ưi", "ay", "ây", "ac", "âc", "ăc", "oc", "ôc", "uc", "ưc", "at", "ăt", "ât", "et", "êt",
+            "it", "ot", "ôt", "ơt", "ut", "ưt", "an", "ăn", "ân", "en", "ên", "in", "on", "ôn", "ơn",
+            "un", "ang", "ăng", "âng", "ong", "ông", "ung", "ưng", "ach", "êch", "ich", "am", "ăm", "âm", "em",
+            "êm", "om", "ôm", "ơm", "im", "um", "ap", "ăp", "âp", "ep", "êp", "op", "ôp", "ơp", "ip",
+            "up", "anh", "ênh", "inh", "ươu", "iêu", "yêu", "uôi", "ươi"
+        ];
+
+        const thanhSource = [
+            { label: "́", name: "sắc" },
+            { label: "̀", name: "huyền" },
+            { label: "̉", name: "hỏi" },
+            { label: "̃", name: "ngã" },
+            { label: "̣", name: "nặng" }
+        ];
+
+        let currentQuestion = null;
+        let score = 0;
+        let totalQuestionsPlayed = 0;
+        const maxQuestions = 10;
+        let repeatTimer = null;
+
+        function playAudioSequence(audioFiles, index = 0, onComplete = null) {
+            if (index >= audioFiles.length) {
+                if (typeof onComplete === 'function') onComplete();
+                return;
+            }
+            
+            let fileName = audioFiles[index];
+            if (fileName === "q") { fileName = "cu"; }
+
+            let audio = new Audio(`audio/${fileName}.mp3`);
+            audio.playbackRate = 1.2;
+            audio.play().then(() => {
+                audio.onended = () => {
+                    playAudioSequence(audioFiles, index + 1, onComplete);
+                };
+            }).catch(error => {
+                console.log(`Không tìm thấy file audio: audio/${fileName}.mp3`);
+                playAudioSequence(audioFiles, index + 1, onComplete);
+            });
+        }
+
+        // --- HÀM RANDOM VÀ PHÁT FILE ÂM THANH ĐÚNG/SAI ---
+        function playRandomAudio(prefix, maxCount, onComplete = null) {
+            let randomIndex = Math.floor(Math.random() * maxCount) + 1;
+            let audio = new Audio(`${prefix}${randomIndex}.mp3`); // Nếu file để trong thư mục audio thì sửa thành `audio/${prefix}${randomIndex}.mp3`
+            audio.playbackRate = 1.2;
+            audio.play().then(() => {
+                if (onComplete) audio.onended = onComplete;
+            }).catch(err => {
+                console.log("Không tìm thấy file audio: ", err);
+                if (onComplete) onComplete();
+            });
+        }
+
+        function clearRepeatTimer() {
+            if (repeatTimer) {
+                clearTimeout(repeatTimer);
+                repeatTimer = null;
+            }
+        }
+
+        function startRepeatTimer() {
+            clearRepeatTimer();
+            repeatTimer = setTimeout(() => {
+                playQuestionSequence();
+                startRepeatTimer(); 
+            }, 3000);
+        }
+
+        function playQuestionSequence() {
+            if (!currentQuestion) return;
+            clearRepeatTimer();
+            playAudioSequence(currentQuestion.audioSeq, 0, () => {
+                startRepeatTimer();
+            });
+        }
+
+        // Phát âm thanh tổng kết điểm số cuối cùng cho bé
+        function playSummaryAudio(finalScore) {
+            clearRepeatTimer();
+            let scoreStr = finalScore.toString();
+            let summarySeq = ["bé", "được", scoreStr, "điểm","mười"];
+            playAudioSequence(summarySeq);
+        }
+
+        function generateRandomQuestion() {
+            let typeChoice = Math.floor(Math.random() * 3);
+            let target, qText, audioSeq, options = [];
+
+            if (typeChoice === 0) {
+                target = amSource[Math.floor(Math.random() * amSource.length)];
+                qText = `Đâu là chữ '${target}'?`;
+                audioSeq = ["đâu", "là", "chữ", target];
+                
+                options = [target];
+                while(options.length < 4) {
+                    let randomOpt = amSource[Math.floor(Math.random() * amSource.length)];
+                    if(!options.includes(randomOpt)) options.push(randomOpt);
+                }
+            } else if (typeChoice === 1) {
+                target = vanSource[Math.floor(Math.random() * vanSource.length)];
+                qText = `Đâu là vần '${target}'?`;
+                audioSeq = ["đâu", "là", "vần", target];
+                
+                options = [target];
+                while(options.length < 4) {
+                    let randomOpt = vanSource[Math.floor(Math.random() * vanSource.length)];
+                    if(!options.includes(randomOpt)) options.push(randomOpt);
+                }
+            } else {
+                let thanhObj = thanhSource[Math.floor(Math.random() * thanhSource.length)];
+                target = thanhObj.label;
+                let thanhName = thanhObj.name;
+                qText = `Đâu là dấu ${thanhName}?`;
+                audioSeq = ["đâu", "là", "dấu", thanhName];
+                
+                options = thanhSource.map(t => t.label);
+            }
+
+            options.sort(() => Math.random() - 0.5);
+
+            return { q: qText, audioSeq: audioSeq, target: target, options: options };
+        }
+
+        function initGame() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('game-content').style.display = 'block';
+
+            let dummyAudio = new Audio();
+            dummyAudio.play().catch(() => {});
+
+            score = 0;
+            totalQuestionsPlayed = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            clearRepeatTimer();
+            document.getElementById('overlay').style.display = 'none';
+
+            if (totalQuestionsPlayed >= maxQuestions) {
+                document.getElementById('question-container').innerHTML = `🎉 Bé đã hoàn thành xuất sắc trò chơi!<br>Tổng điểm: ${score}/${maxQuestions} ⭐`;
+                document.getElementById('answers-container').innerHTML = '';
+                document.querySelector('.replay-audio-btn').style.display = 'none';
+                
+                document.getElementById('action-buttons').innerHTML = `
+                    <button class="restart-btn" onclick="initGame()">🔄 Chơi Lại Ngay</button>
+                    <a href="index.html" class="back-btn">⬅ Về Menu Chính</a>
+                `;
+
+                playSummaryAudio(score);
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            document.querySelector('.replay-audio-btn').style.display = 'inline-block';
+            document.getElementById('action-buttons').innerHTML = `<a href="index.html" class="back-btn">⬅ Về Menu Chính</a>`;
+
+            totalQuestionsPlayed++;
+            currentQuestion = generateRandomQuestion();
+
+            document.getElementById('score-text').innerText = `Điểm số: ${score} ⭐ (Câu ${totalQuestionsPlayed}/${maxQuestions})`;
+            document.getElementById('question-container').innerText = currentQuestion.q;
+
+            const answersContainer = document.getElementById('answers-container');
+            answersContainer.innerHTML = '';
+
+            currentQuestion.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    clearRepeatTimer();
+                    checkAnswer(opt, currentQuestion.target);
+                };
+                answersContainer.appendChild(btn);
+            });
+
+            setTimeout(playQuestionSequence, 400);
+        }
+
+        function checkAnswer(selected, correct) {
+            clearRepeatTimer();
+
+            if (selected === correct) {
+                score++;
+                // Trả lời đúng -> Random true1 đến true5
+                playRandomAudio('true', 5);
+
+                document.getElementById('overlay').style.display = 'block';
+
+                let duration = 3 * 1000;
+                let end = Date.now() + duration;
+
+                let interval = setInterval(function() {
+                    if (Date.now() > end) {
+                        return clearInterval(interval);
+                    }
+                    if (typeof confetti === 'function') {
+                        confetti({ particleCount: 40, angle: 60, spread: 55, origin: { x: 0 } });
+                        confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1 } });
+                    }
+                }, 250);
+
+                setTimeout(loadQuestion, 3000);
+
+            } else {
+                // Trả lời sai -> Random fail1 đến fail3
+                playRandomAudio('fail', 3);
+                setTimeout(startRepeatTimer, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
