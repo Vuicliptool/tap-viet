@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bé Vui Học Tiếng Việt</title>
+    <!-- Liên kết file manifest để biến web thành app cài đặt được -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff4500">
+
     <style>
         body {
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
@@ -109,7 +113,34 @@
             <span>📲</span> Cài Đặt Ứng Dụng Về Máy
         </button>
     </div>
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-app-btn');
 
+        // Lắng nghe sự kiện trình duyệt hỗ trợ cài đặt PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'flex'; // Hiển thị nút cài đặt lên màn hình
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Người dùng đã đồng ý cài đặt ứng dụng');
+                }
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('Ứng dụng đã được cài đặt thành công!');
+            installBtn.style.display = 'none';
+        });
+    </script>
 
 </body>
 </html>
